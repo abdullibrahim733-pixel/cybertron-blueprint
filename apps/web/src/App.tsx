@@ -1,6 +1,6 @@
 import { Outlet, useRouter } from '@tanstack/react-router';
 import { useQuery, gql } from '@apollo/client';
-import { Cpu, FolderOpen, Search, LogOut, User } from 'lucide-react';
+import { Cpu, FolderOpen, Search, Sparkles, LogOut, User } from 'lucide-react';
 
 const ME_QUERY = gql`
   query Me {
@@ -53,6 +53,13 @@ export function App() {
           >
             <Search className="w-5 h-5" />
             Parts Search
+          </button>
+          <button
+            onClick={() => router.navigate({ to: '/ai/new' })}
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gray-800 text-cyber-400 hover:text-cyber-300 transition-colors"
+          >
+            <Sparkles className="w-5 h-5" />
+            AI Design
           </button>
         </nav>
 

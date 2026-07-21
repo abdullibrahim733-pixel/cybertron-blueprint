@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { getDb, closeDb } from '../db/pool.js';
 import { generateToken, type GraphQLContext } from './context.js';
 import { randomUUID } from 'crypto';
+import { generateDesign, generateCircuit, generateBom } from '../services/ai-bridge.js';
 
 function genId(): string {
   return randomUUID();
@@ -155,6 +156,19 @@ export const resolvers = {
       ).all(projectId);
       
       return rows.map(mapBomEntry);
+    },
+
+    aiCapabilities: async () => {
+      return {
+        capabilities: [
+          { name: 'design_decomposition', description: 'Break down a project into subsystems' },
+          { name: 'circuit_generation', description: 'Generate circuit designs' },
+          { name: 'bom_generation', description: 'Generate a Bill of Materials' },
+          { name: 'component_selection', description: 'Recommend components' },
+          { name: 'design_review', description: 'Review designs for issues' },
+        ],
+        supportedDomains: ['electronics', 'embedded_systems', 'sensors', 'power_electronics', 'motor_control'],
+      };
     },
   },
 
@@ -351,6 +365,60 @@ export const resolvers = {
       const part = db.prepare('SELECT * FROM parts WHERE id = ?').get(id);
       if (!part) throw new Error('Part not found');
       return mapPart(part);
+    },
+
+    generateDesign: async (_: any, { description, projectId }: { description: string; projectId?: string }) => {
+      const result = await generateDesign({ description, projectId });
+      return {
+        projectName: result.projectName,
+        subsystems: result.subsystems.map((s: any) => ({
+          name: s.name,
+          description: s.description,
+          type: s.type,
+          keyComponents: s.keyComponents || s.key_components || [],
+          interfaces: s.interfaces || [],
+        })),
+        requirements: result.requirements,
+        notes: result.notes,
+      };
+    },
+
+    generateCircuit: async (_: any, { subsystem, requirements }: { subsystem: string; requirements: any }) => {
+      const result = await generateCircuit(subsystem, requirements);
+      return {
+        subsystem: result.subsystem,
+        components: result.components.map((c: any) => ({
+          name: c.name,
+          type: c.type,
+          value: c.value,
+          package: c.package,
+          quantity: c.quantity,
+          description: c.description,
+          partNumber: c.part_number || c.partNumber,
+        })),
+        connections: result.connections,
+        netlist: result.netlist,
+        notes: result.notes,
+      };
+    },
+
+    generateBom: async (_: any, { design, budget }: { design: any; budget?: number }) => {
+      const result = await generateBom(design, budget);
+      return {
+        projectName: result.projectName,
+        entries: result.entries.map((e: any) => ({
+          partName: e.part_name || e.partName,
+          partNumber: e.part_number || e.partNumber,
+          description: e.description,
+          quantity: e.quantity,
+          unitPriceUsd: e.unit_price_usd || e.unitPriceUsd || 0,
+          supplier: e.supplier,
+          category: e.category,
+          alternatives: e.alternatives || [],
+        })),
+        totalEstimatedCost: result.totalEstimatedCost,
+        notes: result.notes,
+      };
     },
   },
 

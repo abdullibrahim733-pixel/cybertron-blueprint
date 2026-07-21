@@ -182,3 +182,72 @@ input PartInput {
   specData: JSON
   imageUrl: String
 }
+
+# AI Design Agent Types
+type DesignSubsystem {
+  name: String!
+  description: String!
+  type: String!
+  keyComponents: [String!]!
+  interfaces: [String!]!
+}
+
+type DesignResult {
+  projectName: String!
+  subsystems: [DesignSubsystem!]!
+  requirements: JSON
+  notes: String
+}
+
+type CircuitComponent {
+  name: String!
+  type: String!
+  value: String
+  package: String
+  quantity: Int!
+  description: String
+  partNumber: String
+}
+
+type CircuitResult {
+  subsystem: String!
+  components: [CircuitComponent!]!
+  connections: JSON
+  netlist: String
+  notes: String
+}
+
+type BomItem {
+  partName: String!
+  partNumber: String!
+  description: String!
+  quantity: Int!
+  unitPriceUsd: Float!
+  supplier: String
+  category: String
+  alternatives: [String!]!
+}
+
+type BomResult {
+  projectName: String!
+  entries: [BomItem!]!
+  totalEstimatedCost: Float!
+  notes: String
+}
+
+type AiCapabilities {
+  capabilities: [JSON!]!
+  supportedDomains: [String!]!
+}
+
+extend type Query {
+  # AI Design
+  aiCapabilities: AiCapabilities!
+}
+
+extend type Mutation {
+  # AI Design
+  generateDesign(description: String!, projectId: ID): DesignResult!
+  generateCircuit(subsystem: String!, requirements: JSON!): CircuitResult!
+  generateBom(design: JSON!, budget: Float): BomResult!
+}

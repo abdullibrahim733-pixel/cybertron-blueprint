@@ -8,6 +8,7 @@ import { App } from './App';
 import { Dashboard } from './pages/Dashboard';
 import { ProjectView } from './pages/ProjectView';
 import { PartsSearch } from './pages/PartsSearch';
+import { AiDesign } from './pages/AiDesign';
 import { Login } from './pages/Login';
 
 // Apollo Client setup
@@ -53,6 +54,12 @@ const partsRoute = createRoute({
   component: PartsSearch,
 });
 
+const aiDesignRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/ai/$projectId',
+  component: AiDesign,
+});
+
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
@@ -63,6 +70,7 @@ const routeTree = rootRoute.addChildren([
   indexRoute,
   projectRoute,
   partsRoute,
+  aiDesignRoute,
   loginRoute,
 ]);
 
