@@ -1,0 +1,184 @@
+scalar DateTime
+scalar JSON
+
+type User {
+  id: ID!
+  email: String!
+  name: String!
+  role: String!
+  avatarUrl: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Supplier {
+  id: ID!
+  name: String!
+  website: String
+  country: String
+  contactInfo: JSON
+}
+
+type Part {
+  id: ID!
+  externalId: String
+  supplier: Supplier
+  partNumber: String!
+  name: String!
+  description: String
+  category: String
+  specData: JSON
+  imageUrl: String
+  createdAt: DateTime!
+}
+
+type Project {
+  id: ID!
+  owner: User!
+  title: String!
+  description: String
+  status: String!
+  version: Int!
+  tags: [String!]!
+  bomEntries: [BomEntry!]!
+  designFiles: [DesignFile!]!
+  collaborators: [ProjectUser!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type ProjectUser {
+  user: User!
+  permissionLevel: String!
+  joinedAt: DateTime!
+}
+
+type BomEntry {
+  id: ID!
+  project: Project!
+  part: Part!
+  quantity: Int!
+  referenceDesignator: String
+  notes: String
+  createdAt: DateTime!
+}
+
+type DesignFile {
+  id: ID!
+  project: Project!
+  type: String!
+  name: String!
+  fileUrl: String!
+  fileSize: Int
+  mimeType: String
+  version: Int!
+  createdAt: DateTime!
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+type PartSearchResult {
+  parts: [Part!]!
+  totalCount: Int!
+}
+
+input RegisterInput {
+  email: String!
+  name: String!
+  password: String!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input CreateProjectInput {
+  title: String!
+  description: String
+  tags: [String!]
+}
+
+input UpdateProjectInput {
+  title: String
+  description: String
+  status: String
+  tags: [String!]
+}
+
+input AddBomEntryInput {
+  projectId: ID!
+  partId: ID!
+  quantity: Int!
+  referenceDesignator: String
+  notes: String
+}
+
+input UpdateBomEntryInput {
+  quantity: Int
+  referenceDesignator: String
+  notes: String
+}
+
+input SearchPartsInput {
+  query: String!
+  category: String
+  limit: Int
+  offset: Int
+}
+
+type Query {
+  me: User
+  
+  # Projects
+  projects(status: String, limit: Int, offset: Int): [Project!]!
+  project(id: ID!): Project
+  
+  # Parts
+  parts(category: String, limit: Int, offset: Int): [Part!]!
+  part(id: ID!): Part
+  searchParts(input: SearchPartsInput!): PartSearchResult!
+  
+  # Suppliers
+  suppliers: [Supplier!]!
+  supplier(id: ID!): Supplier
+  
+  # BOM
+  bomEntries(projectId: ID!): [BomEntry!]!
+}
+
+type Mutation {
+  # Auth
+  register(input: RegisterInput!): AuthPayload!
+  login(input: LoginInput!): AuthPayload!
+  
+  # Projects
+  createProject(input: CreateProjectInput!): Project!
+  updateProject(id: ID!, input: UpdateProjectInput!): Project!
+  deleteProject(id: ID!): Boolean!
+  addCollaborator(projectId: ID!, userId: ID!, permissionLevel: String!): ProjectUser!
+  removeCollaborator(projectId: ID!, userId: ID!): Boolean!
+  
+  # BOM
+  addBomEntry(input: AddBomEntryInput!): BomEntry!
+  updateBomEntry(id: ID!, input: UpdateBomEntryInput!): BomEntry!
+  removeBomEntry(id: ID!): Boolean!
+  
+  # Parts (admin/manual)
+  createPart(data: PartInput!): Part!
+  updatePart(id: ID!, data: PartInput!): Part!
+}
+
+input PartInput {
+  externalId: String
+  supplierId: ID
+  partNumber: String!
+  name: String!
+  description: String
+  category: String
+  specData: JSON
+  imageUrl: String
+}
