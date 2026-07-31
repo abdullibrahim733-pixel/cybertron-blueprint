@@ -460,8 +460,8 @@ export const resolvers = {
           name: row.name,
           role: row.role,
           avatarUrl: row.avatar_url,
-          createdAt: row.user_created_at,
-          updatedAt: row.user_created_at,
+          createdAt: toISOString(row.user_created_at),
+          updatedAt: toISOString(row.user_created_at),
         },
         permissionLevel: row.permission_level,
         joinedAt: row.joined_at,
@@ -469,6 +469,16 @@ export const resolvers = {
     },
   },
 };
+
+// Helper to convert SQLite datetime to ISO format
+function toISOString(dateStr: string | null | undefined): string | null {
+  if (!dateStr) return null;
+  // SQLite stores as "YYYY-MM-DD HH:MM:SS", convert to ISO
+  if (dateStr.includes(' ') && !dateStr.includes('T')) {
+    return dateStr.replace(' ', 'T') + 'Z';
+  }
+  return dateStr;
+}
 
 // Mapping helpers
 function mapUser(row: any) {
@@ -479,8 +489,8 @@ function mapUser(row: any) {
     name: row.name,
     role: row.role,
     avatarUrl: row.avatar_url,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: toISOString(row.created_at),
+    updatedAt: toISOString(row.updated_at),
   };
 }
 
@@ -494,8 +504,8 @@ function mapProject(row: any) {
     status: row.status,
     version: row.version,
     tags: typeof row.tags === 'string' ? JSON.parse(row.tags) : (row.tags || []),
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: toISOString(row.created_at),
+    updatedAt: toISOString(row.updated_at),
   };
 }
 
@@ -516,7 +526,7 @@ function mapPart(row: any) {
     category: row.category,
     specData: typeof row.spec_data === 'string' ? JSON.parse(row.spec_data) : (row.spec_data || {}),
     imageUrl: row.image_url,
-    createdAt: row.created_at,
+    createdAt: toISOString(row.created_at),
   };
 }
 
@@ -539,7 +549,7 @@ function mapBomEntry(row: any) {
     quantity: row.quantity,
     referenceDesignator: row.reference_designator,
     notes: row.notes,
-    createdAt: row.created_at,
+    createdAt: toISOString(row.created_at),
   };
 }
 
@@ -554,7 +564,7 @@ function mapDesignFile(row: any) {
     fileSize: row.file_size,
     mimeType: row.mime_type,
     version: row.version,
-    createdAt: row.created_at,
+    createdAt: toISOString(row.created_at),
   };
 }
 

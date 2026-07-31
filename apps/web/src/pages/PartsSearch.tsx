@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useSearchParams } from '@tanstack/react-router';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { Search, Plus, Check, ExternalLink } from 'lucide-react';
 
@@ -34,9 +33,7 @@ const ADD_BOM_ENTRY_MUTATION = gql`
 `;
 
 export function PartsSearch() {
-  const [searchParams] = useSearchParams();
-  const projectId = searchParams.get('projectId');
-  
+  const projectId = new URLSearchParams(window.location.search).get('projectId') || undefined;
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('');
   const [addedParts, setAddedParts] = useState<Set<string>>(new Set());

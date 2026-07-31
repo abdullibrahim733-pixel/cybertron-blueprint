@@ -85,9 +85,14 @@ export function AiDesign() {
     scrollToBottom();
   }, [messages]);
 
+  const idRef = useRef(0);
   const addMessage = (role: 'user' | 'assistant', content: string, data?: any, type?: string) => {
+    idRef.current += 1;
+    const id = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `${Date.now()}-${idRef.current}`;
     setMessages(prev => [...prev, {
-      id: Date.now().toString(),
+      id,
       role,
       content,
       data,
@@ -105,19 +110,10 @@ export function AiDesign() {
     setLoading(true);
 
     try {
-      // Detect intent
+      // Detect intent - default to design since this is a design tool
       const lower = userMessage.toLowerCase();
       
-      if (lower.includes('design') || lower.includes('build') || lower.includes('create') || lower.includes('make')) {
-        addMessage('assistant', '🔧 Analyzing your request and generating a design...');
-        
-        const { data } = await generateDesign({
-          variables: { description: userMessage, projectId },
-        });
-        
-        const design = data.generateDesign;
-        addMessage('assistant', `**${design.projectName}**\n\n${design.notes || 'Design generated successfully.'}`, design, 'design');
-      } else if (lower.includes('circuit') || lower.includes('schematic') || lower.includes('schematic')) {
+      if (lower.includes('circuit') || lower.includes('schematic') || lower.includes('netlist')) {
         addMessage('assistant', '⚡ Generating circuit design...');
         
         const { data } = await generateCircuit({
@@ -129,7 +125,7 @@ export function AiDesign() {
         
         const circuit = data.generateCircuit;
         addMessage('assistant', `**Circuit: ${circuit.subsystem}**\n\n${circuit.notes || 'Circuit generated.'}`, circuit, 'circuit');
-      } else if (lower.includes('bom') || lower.includes('parts list') || lower.includes('bill of materials')) {
+      } else if (lower.includes('bom') || lower.includes('parts list') || lower.includes('bill of materials') || lower.includes('components')) {
         addMessage('assistant', '📋 Generating Bill of Materials...');
         
         const { data } = await generateBom({
@@ -142,7 +138,15 @@ export function AiDesign() {
         const bom = data.generateBom;
         addMessage('assistant', `**BOM: ${bom.projectName}**\n\nEstimated cost: $${bom.totalEstimatedCost.toFixed(2)}\n\n${bom.notes || 'BOM generated.'}`, bom, 'bom');
       } else {
-        addMessage('assistant', 'I can help you with:\n\n- **Design**: Describe what you want to build\n- **Circuit**: Ask for a specific circuit design\n- **BOM**: Generate a parts list\n\nTry: "Design a weather station with temperature and humidity sensors"');
+        // Default: treat as design request
+        addMessage('assistant', '🔧 Analyzing your request and generating a design...');
+        
+        const { data } = await generateDesign({
+          variables: { description: userMessage, projectId },
+        });
+        
+        const design = data.generateDesign;
+        addMessage('assistant', `**${design.projectName}**\n\n${design.notes || 'Design generated successfully.'}`, design, 'design');
       }
     } catch (error: any) {
       addMessage('assistant', `Error: ${error.message || 'Something went wrong'}`);

@@ -3,6 +3,9 @@ dist/
 *.db
 *.db-journal
 *.db-wal
+*.db-shm
+__pycache__/
+.playwright-mcp/
 .env
 .env.local
 *.log
